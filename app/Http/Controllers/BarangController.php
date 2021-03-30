@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Barang;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BarangController extends Controller
 {
@@ -13,7 +15,9 @@ class BarangController extends Controller
      */
     public function index()
     {
-        //
+       $barangs=Barang::orderBy('id_barang','asc')->paginate(5);
+       return view('barangs.index',compact('barangs'))
+       ->with('i',(request()->input('page', 1) - 1) * 5);
     }
 
     /**
@@ -23,7 +27,7 @@ class BarangController extends Controller
      */
     public function create()
     {
-        //
+        return view('barangs.create');
     }
 
     /**
@@ -34,7 +38,22 @@ class BarangController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        //Lakukan Validasi data 
+        $request-> validate([
+            'id_barang'=> 'required',
+            'kode_barang'=> 'required',
+            'nama_barang'=> 'required',
+            'kategori_barang'=> 'required',
+            'harga'=> 'required',
+            'qty' => 'required'
+        ]);
+
+        //fungsi eloquent untuk menambah data
+        Barang::create($request->all());
+
+        //jika data berhasil ditambahkan, akan kembali ke halaman utama
+        return redirect()->route('barang.index')
+            ->with('success', 'Barang Berhasil Ditambahkan');
     }
 
     /**
@@ -43,9 +62,10 @@ class BarangController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($Id_Barang)
     {
-        //
+         $Barang = Barang::find($Id_Barang);
+         return view('barangs.detail', compact('Barang'));
     }
 
     /**
@@ -54,9 +74,10 @@ class BarangController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit($Id_Barang)
     {
-        //
+        $Barang = Barang::find($Id_Barang);
+        return view('barangs.edit', compact('Barang'));
     }
 
     /**
@@ -66,9 +87,24 @@ class BarangController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $Id_Barang)
     {
-        //
+        //Melakukan validasi data
+        $request-> validate([
+            'id_barang'=> 'required',
+            'kode_barang'=> 'required',
+            'nama_barang'=> 'required',
+            'kategori_barang'=> 'required',
+            'harga'=> 'required',
+            'qty' => 'required',
+        ]);
+
+        //fungsi eloquent untuk mengupdate data inputan kita
+        Barang::find($Id_Barang)->update($request->all());
+
+        //jika data berhasil diupdate, akan kembali ke halaman utama
+        return redirect()->route('barang.index')
+            ->with('success', 'Barang Berhasil Diupdate');
     }
 
     /**
@@ -77,8 +113,22 @@ class BarangController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($Id_Barang)
     {
-        //
+        //fungsi eloquent untuk menghapus data
+        Barang::find($Id_Barang)->delete();
+        return redirect()->route('barang.index')
+            ->with('success', 'Barang Berhasil Dihapus');
+    }
+
+    public function search(Request $request){
+        $search = $request -> search;
+
+        $barangs = DB::table('barangs')->
+        where('id_barang', 'like', "%".$search."%")->
+        orwhere('kode_barang', 'like', "%".$search."%")->
+        orwhere('nama_barang', 'like', "%".$search."%")->paginate(5);
+
+        return view('barangs.index', ['barangs' => $barangs]);
     }
 }
