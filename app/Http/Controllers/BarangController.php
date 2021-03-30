@@ -126,6 +126,7 @@ class BarangController extends Controller
 
         $barangs = DB::table('barangs')->
         where('id_barang', 'like', "%".$search."%")->
+        //Revisi Search Code Barang + Nama Barang
         orwhere('kode_barang', 'like', "%".$search."%")->
         orwhere('nama_barang', 'like', "%".$search."%")->paginate(5);
 
